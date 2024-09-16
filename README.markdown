@@ -1,6 +1,23 @@
 # Generic Colouriser
 
-Radovan Garabík  <http://kassiopeia.juls.savba.sk/~garabik/software/grc.html> (garabik @ kassiopeia.juls.savba.sk)
+This is fork of [garabik/grc](https://github.com/garabik/grc). The modification include `GRC_CONFIG` `GRC_COLOUR_PATH` env support for paths of [grc.conf](./grc.conf) and [colourfiles](./colourfiles/). This allows me to install it using a zsh plugin manager like `zinit` easily.
+
+```bash
+# This install does require zdharma-continuum/zinit-annex-bin-gem-node annex for zinit
+export GRC_CONFIG="$ZPFX/etc/grc.conf" # Set custom grc.conf path for zinit
+export GRC_COLOUR_PATH="$ZPFX/share/grc/" # Set custom colourfiles path for zinit
+local grc_atload="
+export GRC=\$(which grc)
+unalias du df &>/dev/null # Remove existing aliases for du and df
+alias du='\$GRC --colour=auto du -h' # add custom alias for du
+alias df='\$GRC --colour=auto df -h' # add custom alias for df
+"
+zinit light-mode as"program" atclone'./install.sh $ZPFX $ZPFX' atpull"%atclone" src'grc.zsh' \
+    atload"$grc_atload" nocompile sbin"(grc|grcat)"  pick'$ZPFX/bin/grc*' wait for \
+    id-as Nadim147c/grc
+```
+
+---
 
 For the impatient - try following commands:
 
@@ -9,9 +26,9 @@ For the impatient - try following commands:
     grc tail /var/log/syslog
     grc ps aux
 
-Being overflooded with different logfile colo(u)?ri(s|z)ers, colortails, gccolors, colormakes and similar programs for making text files or outputs of different programs more readable by inserting ansi colour control codes into them, I decided to write  my very own colouriser, eventually providing the functions of all those others.
+Being overflooded with different logfile colo(u)?ri(s|z)ers, colortails, gccolors, colormakes and similar programs for making text files or outputs of different programs more readable by inserting ansi colour control codes into them, I decided to write my very own colouriser, eventually providing the functions of all those others.
 
-Two programs are provided: `grc` and `grcat`.  The main is `grcat`, which acts as a filter, i.e. taking standard input, colourising it and writing to standard output.
+Two programs are provided: `grc` and `grcat`. The main is `grcat`, which acts as a filter, i.e. taking standard input, colourising it and writing to standard output.
 
 ## Configuration
 
@@ -39,7 +56,7 @@ Another special colour name "unchanged" will leave the colour unchanged, useful 
 
 Yet another special name is an arbitrary string enclosed in straight quotes. This string will be inserted directly into the output in front of the matching expression. The string will be eval'ed, so you can use usual python escape sequences.
 
-This is useful on a 256-colour enabled xterm, where e.g.  `colours="\033[38;5;22m"` will give you a dark green (inspired by Rutger Ovidius). Caveat: the string cannot contain a comma. This is due to my laziness :-)
+This is useful on a 256-colour enabled xterm, where e.g. `colours="\033[38;5;22m"` will give you a dark green (inspired by Rutger Ovidius). Caveat: the string cannot contain a comma. This is due to my laziness :-)
 
 **command** is command to be executed when regexp matches. Its output will be mixed with normal stdout, use redirectors (`>/dev/null`) if you want to suppress it.
 
@@ -47,7 +64,7 @@ This is useful on a 256-colour enabled xterm, where e.g.  `colours="\033[38;5;22
 
 **skip** can be `skip=yes`, if that case the matched line is skipped (discarded from the output), or `skip=no`, when it is not skipped. Default (if you do not have skip keyword) is of course not skipped.
 
-**replace** means the regular expression match will be replaced by the value. All the preceeding regular expressions will be evaluated against the original text, but if they match and the replacement changes the length of the text, the colouring will *stay at the same positions*, which is probably not what you want - therefore put the `replace` rule preferrably at the beginning of config file.
+**replace** means the regular expression match will be replaced by the value. All the preceeding regular expressions will be evaluated against the original text, but if they match and the replacement changes the length of the text, the colouring will _stay at the same positions_, which is probably not what you want - therefore put the `replace` rule preferrably at the beginning of config file.
 
 all the following regular expressions will be evaluated against the replaced text, not the original.
 
@@ -60,12 +77,12 @@ will change time format from 09:43:59 into 09h43m59s
 
 **count** is one of words: once, more, stop, previous, block or unblock
 
-- **once** means that if the regexp is matched, its first occurrence is coloured and the program will continue with other regexp's.
-- **more** means that if there are multiple matches of the regexp in one line, all of them will be coloured.
-- **stop** means that the regexp will be coloured and program will move to the next line (i.e. ignoring other regexp's)
-- **previous** means the count will be the same as for the previous line
-- **block** marks a start of a multiline block of text, coloured with the same colour
-- **unblock**, obviously, marks the end of such a block
+-   **once** means that if the regexp is matched, its first occurrence is coloured and the program will continue with other regexp's.
+-   **more** means that if there are multiple matches of the regexp in one line, all of them will be coloured.
+-   **stop** means that the regexp will be coloured and program will move to the next line (i.e. ignoring other regexp's)
+-   **previous** means the count will be the same as for the previous line
+-   **block** marks a start of a multiline block of text, coloured with the same colour
+-   **unblock**, obviously, marks the end of such a block
 
 example:
 
@@ -204,7 +221,7 @@ Add to `~/.config/fish/config.fish` or in a new file in `~/.config/fish/conf.d/`
 
 ## Dynamic aliases
 
-By running the follow code, it will check to see what programs are already installed on your OS (based on your `$PATH`), and echo out the result.  This could then be added to your shell resource file as a one off.  Alternatively, by removing the `echo` in the code, it could be placed into your shell resource file directly, and it will create the necessarily aliases each time:
+By running the follow code, it will check to see what programs are already installed on your OS (based on your `$PATH`), and echo out the result. This could then be added to your shell resource file as a one off. Alternatively, by removing the `echo` in the code, it could be placed into your shell resource file directly, and it will create the necessarily aliases each time:
 
     for cmd in g++ gas head make ld ping6 tail traceroute6 $( ls /usr/share/grc/ ); do
       cmd="${cmd##*conf.}"
